@@ -186,12 +186,13 @@ const ManageMoviesScreen = ({ navigation }: any) => {
 
     return (
       <View style={styles.movieCard}>
-        <Image
-          source={{ uri: item.posterUrl }}
-          style={styles.moviePoster}
-          resizeMode="cover"
-        />
-
+        {item.posterUrl && (
+          <Image
+            source={{ uri: item.posterUrl }}
+            style={styles.moviePoster}
+            resizeMode="cover"
+          />
+        )}
         <View style={styles.movieInfo}>
           <Text style={styles.movieTitle} numberOfLines={1}>
             {item.title}

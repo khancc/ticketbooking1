@@ -126,6 +126,20 @@ const HomeScreen = ({ navigation }: any) => {
     fetchData();
   };
 
+  const handleSeeAllNowShowing = () => {
+    navigation.navigate("MovieList", {
+      type: "now-showing",
+      title: "Now Showing",
+    });
+  };
+
+  const handleSeeAllComingSoon = () => {
+    navigation.navigate("MovieList", {
+      type: "coming-soon",
+      title: "Coming Soon",
+    });
+  };
+
   const renderPromotionItem = ({ item }: any) => (
     <TouchableOpacity
       style={styles.carouselItem}
@@ -133,11 +147,13 @@ const HomeScreen = ({ navigation }: any) => {
         navigation.navigate("Article", { articleId: item.articleId })
       }
     >
-      <ImageBackground
-        source={{ uri: item.imageUrl }}
-        style={styles.carouselImage}
-        resizeMode="cover"
-      />
+      {item.imageUrl && (
+        <ImageBackground
+          source={{ uri: item.imageUrl }}
+          style={styles.carouselImage}
+          resizeMode="cover"
+        />
+      )}
     </TouchableOpacity>
   );
 
@@ -148,11 +164,13 @@ const HomeScreen = ({ navigation }: any) => {
       activeOpacity={0.7}
     >
       <View style={styles.posterContainer}>
-        <Image
-          source={{ uri: item.posterUrl }}
-          style={styles.moviePoster}
-          resizeMode="cover"
-        />
+        {item.posterUrl && (
+          <Image
+            source={{ uri: item.posterUrl }}
+            style={styles.moviePoster}
+            resizeMode="cover"
+          />
+        )}
         <View style={styles.ratingBadge}>
           <Ionicons name="star" size={12} color="#FFD700" />
           <Text style={styles.ratingText}>{item.rating}</Text>
@@ -233,7 +251,7 @@ const HomeScreen = ({ navigation }: any) => {
         <View style={styles.moviesContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Now Showing</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleSeeAllNowShowing}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>
@@ -260,7 +278,7 @@ const HomeScreen = ({ navigation }: any) => {
         <View style={styles.moviesContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Coming Soon</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleSeeAllComingSoon}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>

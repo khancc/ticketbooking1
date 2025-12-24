@@ -65,11 +65,13 @@ const ArticleScreen = ({ route, navigation }: any) => {
       />
 
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: article.imageUrl }}
-          style={styles.articleImage}
-          resizeMode="cover"
-        />
+        {article.imageUrl && (
+          <Image
+            source={{ uri: article.imageUrl }}
+            style={styles.articleImage}
+            resizeMode="cover"
+          />
+        )}
         <LinearGradient
           colors={["rgba(0,0,0,0.7)", "transparent"]}
           style={styles.gradient}

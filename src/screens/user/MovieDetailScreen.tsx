@@ -128,11 +128,13 @@ const MovieDetailScreen = ({ route, navigation }: any) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.posterContainer}>
-          <Image
-            source={{ uri: movie.posterUrl }}
-            style={styles.poster}
-            resizeMode="cover"
-          />
+          {movie.posterUrl && (
+            <Image
+              source={{ uri: movie.posterUrl }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          )}
           <LinearGradient
             colors={["transparent", "rgba(0,0,0,0.8)"]}
             style={styles.posterGradient}

@@ -12,6 +12,7 @@ import RegisterScreen from "../screens/auth/RegisterScreen";
 // User Screens
 import HomeScreen from "../screens/user/HomeScreen";
 import MovieDetailScreen from "../screens/user/MovieDetailScreen";
+import MovieListScreen from "../screens/user/MovieListScreen";
 import BookingScreen from "../screens/user/BookingScreen";
 import SeatSelectionScreen from "../screens/user/SeatSelectionScreen";
 import PaymentScreen from "../screens/user/PaymentScreen";
@@ -74,22 +75,30 @@ const UserTabNavigator = () => (
       }}
     />
 
-    <Tab.Screen name="My Tickets" component={MyTicketsScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
-    <Tab.Screen name="Profile" component={ProfileScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
+    <Tab.Screen
+      name="My Tickets"
+      component={MyTicketsScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
+    <Tab.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
   </Tab.Navigator>
 );
 
@@ -104,6 +113,11 @@ const UserStackNavigator = () => (
     <Stack.Screen
       name="MovieDetail"
       component={MovieDetailScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="MovieList"
+      component={MovieListScreen}
       options={{ headerShown: false }}
     />
     <Stack.Screen name="Booking" component={BookingScreen} />
@@ -153,38 +167,54 @@ const AdminTabNavigator = () => (
       },
     })}
   >
-    <Tab.Screen name="Dashboard" component={AdminDashboardScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
-    <Tab.Screen name="Movies" component={ManageMoviesScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
-    <Tab.Screen name="Promotions" component={ManagePromotionsScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
-    <Tab.Screen name="Bookings" component={ManageBookingsScreen} options={{
-      headerShown: true,
-      headerStyle: {
-        backgroundColor: "#E50914",
-      },
-      headerTintColor: "#fff",
-      headerTitleAlign: "center",
-    }} />
+    <Tab.Screen
+      name="Dashboard"
+      component={AdminDashboardScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
+    <Tab.Screen
+      name="Movies"
+      component={ManageMoviesScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
+    <Tab.Screen
+      name="Promotions"
+      component={ManagePromotionsScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
+    <Tab.Screen
+      name="Bookings"
+      component={ManageBookingsScreen}
+      options={{
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: "#E50914",
+        },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
+      }}
+    />
   </Tab.Navigator>
 );
 

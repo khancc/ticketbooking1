@@ -374,11 +374,13 @@ const ManageShowtimesScreen = ({ route, navigation }: any) => {
                   ]}
                   onPress={() => setSelectedMovie(movie)}
                 >
-                  <Image
-                    source={{ uri: movie.posterUrl }}
-                    style={styles.moviePoster}
-                    resizeMode="cover"
-                  />
+                  {movie.posterUrl && (
+                    <Image
+                      source={{ uri: movie.posterUrl }}
+                      style={styles.moviePoster}
+                      resizeMode="cover"
+                    />
+                  )}
                   <Text
                     style={[
                       styles.movieTitle,

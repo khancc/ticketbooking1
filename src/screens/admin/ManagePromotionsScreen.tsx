@@ -117,12 +117,13 @@ const ManagePromotionsScreen = ({ navigation }: any) => {
 
     return (
       <View style={styles.promotionCard}>
-        <Image
-          source={{ uri: item.imageUrl }}
-          style={styles.promotionImage}
-          resizeMode="cover"
-        />
-
+        {item.imageUrl && (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.promotionImage}
+            resizeMode="cover"
+          />
+        )}
         <View style={styles.promotionInfo}>
           <Text style={styles.promotionTitle}>{item.title}</Text>
           <Text style={styles.promotionDate}>Created: {formattedDate}</Text>
