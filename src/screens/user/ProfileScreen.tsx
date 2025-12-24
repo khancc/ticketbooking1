@@ -78,9 +78,17 @@ const ProfileScreen = () => {
   };
 
   const confirmLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      handleLogout();
-    }
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Logout",
+        onPress: handleLogout,
+        style: "destructive",
+      },
+    ]);
   };
 
   // Add handlers for the settings items
