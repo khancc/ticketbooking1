@@ -23,6 +23,14 @@ import { db } from "../../config/firebase";
 import { useAuth } from "../../context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 
+interface SavedPaymentMethod {
+  id: string;
+  cardNumber: string;
+  cardholderName: string;
+  expiryDate: string;
+  isDefault: boolean;
+}
+
 const PaymentScreen = ({ route, navigation }: any) => {
   const { movieId, showtimeId, selectedSeats, totalPrice } = route.params;
   const { user } = useAuth();
@@ -31,9 +39,14 @@ const PaymentScreen = ({ route, navigation }: any) => {
   const [seats, setSeats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal" | null>(
-    null
-  );
+  const [paymentMethod, setPaymentMethod] = useState<
+    "card" | "paypal" | "saved" | null
+  >(null);
+  const [savedPaymentMethods, setSavedPaymentMethods] = useState<
+    SavedPaymentMethod[]
+  >([]);
+  const [selectedSavedMethod, setSelectedSavedMethod] =
+    useState<SavedPaymentMethod | null>(null);
 
   // Card details
   const [cardNumber, setCardNumber] = useState("");
@@ -67,6 +80,24 @@ const PaymentScreen = ({ route, navigation }: any) => {
           }
         }
         setSeats(seatsData);
+
+        // Fetch user's saved payment methods
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().paymentMethods) {
+            const methods = userDoc.data().paymentMethods;
+            setSavedPaymentMethods(methods);
+
+            // Auto-select default payment method if exists
+            const defaultMethod = methods.find(
+              (m: SavedPaymentMethod) => m.isDefault
+            );
+            if (defaultMethod) {
+              setSelectedSavedMethod(defaultMethod);
+              setPaymentMethod("saved");
+            }
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -75,14 +106,32 @@ const PaymentScreen = ({ route, navigation }: any) => {
     };
 
     fetchData();
-  }, [movieId, showtimeId, selectedSeats]);
+  }, [movieId, showtimeId, selectedSeats, user]);
 
-  const handlePaymentMethodSelect = (method: "card" | "paypal") => {
+  const handlePaymentMethodSelect = (
+    method: "card" | "paypal" | "saved",
+    savedMethod?: SavedPaymentMethod
+  ) => {
     setPaymentMethod(method);
+    if (method === "saved" && savedMethod) {
+      setSelectedSavedMethod(savedMethod);
+      // Auto-fill card details from saved method
+      setCardNumber(savedMethod.cardNumber);
+      setCardName(savedMethod.cardholderName);
+      setExpiryDate(savedMethod.expiryDate);
+      setCvv(""); // CVV is never saved for security
+    } else if (method !== "saved") {
+      setSelectedSavedMethod(null);
+      // Reset card fields for new entry
+      setCardNumber("");
+      setCardName("");
+      setExpiryDate("");
+      setCvv("");
+    }
   };
 
   const validateCardDetails = () => {
-    if (!cardNumber || !cardName || !expiryDate || !cvv) {
+    if (!cardNumber || !cardName || !expiryDate) {
       Alert.alert("Error", "Please fill in all card details");
       return false;
     }
@@ -97,7 +146,13 @@ const PaymentScreen = ({ route, navigation }: any) => {
       return false;
     }
 
-    if (cvv.length !== 3) {
+    // Only require CVV for new card entries, not for saved methods
+    if (paymentMethod === "card" && !cvv) {
+      Alert.alert("Error", "Please enter CVV");
+      return false;
+    }
+
+    if (paymentMethod === "card" && cvv.length !== 3) {
       Alert.alert("Error", "Invalid CVV");
       return false;
     }
@@ -111,7 +166,10 @@ const PaymentScreen = ({ route, navigation }: any) => {
       return;
     }
 
-    if (paymentMethod === "card" && !validateCardDetails()) {
+    if (
+      (paymentMethod === "card" || paymentMethod === "saved") &&
+      !validateCardDetails()
+    ) {
       return;
     }
 
@@ -128,7 +186,22 @@ const PaymentScreen = ({ route, navigation }: any) => {
         showtimeId,
         seats: selectedSeats,
         totalPrice,
-        paymentMethod,
+        paymentMethod:
+          paymentMethod === "saved"
+            ? `saved_${selectedSavedMethod?.id}`
+            : paymentMethod,
+        paymentDetails:
+          paymentMethod === "saved"
+            ? {
+                type: "saved",
+                cardLast4: selectedSavedMethod?.cardNumber.slice(-4),
+                cardholderName: selectedSavedMethod?.cardholderName,
+              }
+            : {
+                type: "new_card",
+                cardLast4: cardNumber.replace(/\s/g, "").slice(-4),
+                cardholderName: cardName,
+              },
         status: "confirmed",
         createdAt: new Date(),
         // Generate a random booking reference
@@ -247,6 +320,54 @@ const PaymentScreen = ({ route, navigation }: any) => {
         <View style={styles.paymentMethodsContainer}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
 
+          {savedPaymentMethods.length > 0 && (
+            <>
+              <Text style={styles.savedMethodsLabel}>Your Saved Cards</Text>
+              {savedPaymentMethods.map((method) => (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.paymentMethodItem,
+                    paymentMethod === "saved" &&
+                      selectedSavedMethod?.id === method.id &&
+                      styles.selectedPaymentMethod,
+                  ]}
+                  onPress={() => handlePaymentMethodSelect("saved", method)}
+                >
+                  <Ionicons
+                    name="card"
+                    size={24}
+                    color={
+                      paymentMethod === "saved" &&
+                      selectedSavedMethod?.id === method.id
+                        ? "#E50914"
+                        : "#666"
+                    }
+                  />
+                  <View style={styles.savedMethodInfo}>
+                    <Text
+                      style={[
+                        styles.paymentMethodText,
+                        paymentMethod === "saved" &&
+                          selectedSavedMethod?.id === method.id &&
+                          styles.selectedPaymentMethodText,
+                      ]}
+                    >
+                      •••• •••• •••• {method.cardNumber.slice(-4)}
+                    </Text>
+                    <Text style={styles.cardHolderName}>
+                      {method.cardholderName}
+                    </Text>
+                  </View>
+                  {method.isDefault && (
+                    <Text style={styles.defaultLabel}>Default</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+              <Text style={styles.orText}>— OR —</Text>
+            </>
+          )}
+
           <TouchableOpacity
             style={[
               styles.paymentMethodItem,
@@ -265,7 +386,7 @@ const PaymentScreen = ({ route, navigation }: any) => {
                 paymentMethod === "card" && styles.selectedPaymentMethodText,
               ]}
             >
-              Credit/Debit Card
+              Enter New Card
             </Text>
           </TouchableOpacity>
 
@@ -329,6 +450,56 @@ const PaymentScreen = ({ route, navigation }: any) => {
                   value={expiryDate}
                   onChangeText={setExpiryDate}
                   maxLength={5}
+                />
+              </View>
+
+              <View style={[styles.inputContainer, { flex: 1 }]}>
+                <Text style={styles.inputLabel}>CVV</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="123"
+                  value={cvv}
+                  onChangeText={setCvv}
+                  keyboardType="number-pad"
+                  maxLength={3}
+                  secureTextEntry
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {paymentMethod === "saved" && (
+          <View style={styles.savedCardDetailsContainer}>
+            <Text style={styles.sectionTitle}>Saved Card</Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Card Number</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={`•••• •••• •••• ${cardNumber.slice(-4)}`}
+                editable={false}
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Cardholder Name</Text>
+              <TextInput
+                style={[styles.input, styles.disabledInput]}
+                value={cardName}
+                editable={false}
+              />
+            </View>
+
+            <View style={styles.rowInputs}>
+              <View
+                style={[styles.inputContainer, { flex: 1, marginRight: 10 }]}
+              >
+                <Text style={styles.inputLabel}>Expiry Date</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={expiryDate}
+                  editable={false}
                 />
               </View>
 
@@ -465,6 +636,12 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 10,
   },
+  savedMethodsLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    fontWeight: "600",
+  },
   paymentMethodItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -478,6 +655,10 @@ const styles = StyleSheet.create({
     borderColor: "#E50914",
     backgroundColor: "rgba(229, 9, 20, 0.05)",
   },
+  savedMethodInfo: {
+    flex: 1,
+    marginLeft: 10,
+  },
   paymentMethodText: {
     fontSize: 16,
     color: "#333",
@@ -487,10 +668,36 @@ const styles = StyleSheet.create({
     color: "#E50914",
     fontWeight: "500",
   },
+  cardHolderName: {
+    fontSize: 12,
+    color: "#999",
+    marginLeft: 10,
+    marginTop: 4,
+  },
+  defaultLabel: {
+    fontSize: 12,
+    color: "#4CAF50",
+    fontWeight: "bold",
+  },
+  orText: {
+    textAlign: "center",
+    color: "#999",
+    fontSize: 12,
+    marginVertical: 10,
+  },
   cardDetailsContainer: {
     backgroundColor: "#fff",
     padding: 20,
     marginBottom: 10,
+  },
+  savedCardDetailsContainer: {
+    backgroundColor: "#fff",
+    padding: 20,
+    marginBottom: 10,
+  },
+  disabledInput: {
+    backgroundColor: "#f5f5f5",
+    color: "#999",
   },
   inputContainer: {
     marginBottom: 15,
