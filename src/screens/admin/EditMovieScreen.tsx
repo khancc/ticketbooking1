@@ -154,7 +154,7 @@ const EditMovieScreen = ({ route, navigation }: any) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Vẫn dùng MediaTypeOptions
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [2, 3],
         quality: 0.8,

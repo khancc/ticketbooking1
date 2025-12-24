@@ -18,8 +18,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../../config/firebase";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { useAuth } from "../../context/AuthContext";
 
 const EditPromotionScreen = ({ route, navigation }: any) => {
+  const { isAdmin } = useAuth();
   const { promotionId, isNew = false } = route.params || {};
 
   const [loading, setLoading] = useState(!isNew);
@@ -109,7 +111,7 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
@@ -138,7 +140,7 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [16, 9],
         quality: 0.8,
@@ -209,6 +211,13 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
   };
 
   const handleSave = async () => {
+    if (!isAdmin) {
+      Alert.alert(
+        "Insufficient permissions",
+        "Only admins can save promotions."
+      );
+      return;
+    }
     if (!validateForm()) return;
 
     try {
@@ -284,10 +293,7 @@ const EditPromotionScreen = ({ route, navigation }: any) => {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: '#fff' }}
-      edges={['top']}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }} edges={["top"]}>
       {/* <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
